@@ -398,7 +398,7 @@ export class World {
     const n = Math.round(e.acc);
     e.acc = 0;
     e.accT = 0.38;
-    if (this.floaters.length > 70) return;
+    if (this.floaters.length > 22) return;
     this.floaters.push({
       x: e.x + this.fx.range(-10, 10),
       y: e.y - e.r - 6,

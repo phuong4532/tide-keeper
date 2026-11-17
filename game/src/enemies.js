@@ -150,19 +150,25 @@ export function moveEnemy(e, dt, slow, beam) {
   if (e.type !== 'ghost' && e.y < HORIZON + 4) e.y = HORIZON + 4;
 }
 
+/** What wave `n` sends, as [type, count] pairs (the boss comes separately). */
+export function waveCounts(n) {
+  const boss = BOSS_WAVES.includes(n);
+  const scale = (count) => Math.round(count * (boss ? 0.55 : 1) * (n > 8 ? 1 + 0.12 * (n - 8) : 1));
+  const rows = [
+    ['crab', 9 + Math.ceil(3 * n)],
+    ['eel', n >= 2 ? Math.min(24, 3 * n) : 0],
+    ['jelly', n >= 3 ? Math.min(12, n) : 0],
+    ['ghost', n >= 4 ? Math.min(12, n) : 0],
+    ['gunboat', n >= 6 ? Math.min(4, Math.floor((n - 3) / 2)) : 0],
+    ['leviathan', n >= 6 ? Math.floor((n - 2) / 2.5) : 0],
+  ].map(([type, count]) => [type, scale(count)]);
+  if (n === 12) rows.push(['leviathan', scale(1)]);
+  return rows.filter(([, count]) => count > 0);
+}
+
 /** The creatures wave `n` sends, as a shuffled list of type names (the boss comes separately). */
 export function waveRoster(n, rng) {
   const list = [];
-  const boss = BOSS_WAVES.includes(n);
-  const add = (type, count) => {
-    for (let i = 0; i < Math.round(count * (boss ? 0.55 : 1) * (n > 8 ? 1 + 0.12 * (n - 8) : 1)); i += 1) list.push(type);
-  };
-  add('crab', 9 + Math.ceil(3 * n));
-  add('eel', n >= 2 ? Math.min(24, 3 * n) : 0);
-  add('jelly', n >= 3 ? Math.min(12, n) : 0);
-  add('ghost', n >= 4 ? Math.min(12, n) : 0);
-  add('gunboat', n >= 6 ? Math.min(4, Math.floor((n - 3) / 2)) : 0);
-  add('leviathan', n >= 6 ? Math.floor((n - 2) / 2.5) : 0);
-  if (n === 12) add('leviathan', 1);
+  for (const [type, count] of waveCounts(n)) for (let i = 0; i < count; i += 1) list.push(type);
   return rng.shuffle(list);
 }

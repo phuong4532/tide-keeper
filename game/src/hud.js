@@ -1,13 +1,13 @@
 // The heads-up display while playing: hull and lamp, tide and wave, score, pearls and combo, the relic
 // strip, the boss bar, the radar, the ability bar and the wave banner. Biggest numbers first, so it
 // still reads when the picture is shrunk.
-import { BEAMS, H, TOTAL_WAVES, W } from './config.js';
+import { BEAMS, BOSS_WAVES, H, TOTAL_WAVES, W } from './config.js';
 import { drawAbilityBar } from './abilities.js';
-import { BOSSES } from './enemies.js';
+import { BOSSES, TYPES, waveCounts } from './enemies.js';
 import { drawIcon } from './icons.js';
 import { drawRadar } from './radar.js';
 import { bar, outlined, panel, roundRect, SERIF, text } from './ui.js';
-import { itemById, RARITY } from './upgrades.js';
+import { itemById, MAX_LEVEL, RARITY, UPGRADES } from './upgrades.js';
 import { tideOf } from './world.js';
 
 /** One small framed relic icon, shared with the shop and the end screen. */
@@ -52,6 +52,75 @@ function drawRelicStrip(ctx, world) {
   }
 }
 
+
+/** The two rules, always on screen: how the run is won and how it is lost. */
+function drawRules(ctx) {
+  const x = W / 2 - 252;
+  const y = 104;
+  panel(ctx, x, y, 504, 26, 0.72);
+  text(ctx, 'WIN', x + 16, y + 18, 14, '#7cf0a8', 'left', 900);
+  text(ctx, `hold to wave ${TOTAL_WAVES}`, x + 50, y + 18, 14, '#d8f5e2', 'left', 700);
+  text(ctx, 'LOSE', x + 270, y + 18, 14, '#ff8f84', 'left', 900);
+  text(ctx, 'hull reaches 0', x + 310, y + 18, 14, '#ffe0dc', 'left', 700);
+}
+
+/** What is still coming this wave (field plus queue) and what the next wave brings. */
+function drawIncoming(ctx, world) {
+  const left = new Map();
+  const note = (type) => left.set(type, (left.get(type) || 0) + 1);
+  for (const e of world.enemies) if (e.type !== 'shell' && e.type !== 'sprat') note(e.type);
+  for (const type of world.spawnList) note(type);
+  if (world.bossPending) note('kraken');
+  const rows = [...left.entries()].sort((a, b) => TYPES[b[0]].hp - TYPES[a[0]].hp).slice(0, 5);
+  const next = world.wave + 1;
+  let nextLine = 'Dawn is near. Hold the light.';
+  if (world.wave < TOTAL_WAVES) {
+    const now = new Set(waveCounts(world.wave).map(([type]) => type));
+    const fresh = waveCounts(next).filter(([type]) => !now.has(type)).map(([type]) => TYPES[type].name.split(' ').pop());
+    nextLine = BOSS_WAVES.includes(next) ? `Boss: ${BOSSES[next].title}` : fresh.length ? `New: ${fresh.join(' + ')}` : 'More of the same, faster';
+  }
+  const x = 16;
+  const y = 138;
+  const h = 58 + rows.length * 24 + 44;
+  panel(ctx, x, y, 236, h, 0.66);
+  text(ctx, 'INCOMING', x + 14, y + 25, 15, '#ffd35a', 'left', 900);
+  text(ctx, `${world.enemiesLeft} left`, x + 222, y + 25, 14, '#cfe0ff', 'right', 800);
+  rows.forEach(([type, count], i) => {
+    const ry = y + 52 + i * 24;
+    ctx.fillStyle = type === 'kraken' ? '#ff5a9a' : type === 'leviathan' ? '#c79bff' : type === 'gunboat' ? '#ffb347' : type === 'ghost' ? '#9ff4ff' : '#9fc4ff';
+    ctx.beginPath();
+    ctx.arc(x + 20, ry - 5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    text(ctx, TYPES[type].name, x + 34, ry, 14, '#ffffff', 'left', 700);
+    text(ctx, String(count), x + 222, ry, 15, '#ffe7a6', 'right', 900);
+  });
+  const ny = y + h - 30;
+  ctx.fillStyle = 'rgba(160,200,255,0.25)';
+  ctx.fillRect(x + 14, ny - 14, 208, 1);
+  text(ctx, `NEXT  wave ${Math.min(next, TOTAL_WAVES)}`, x + 14, ny + 4, 12, '#9fc4ff', 'left', 900);
+  text(ctx, nextLine, x + 14, ny + 22, 13, '#ffe7a6', 'left', 700);
+}
+
+/** Upgrade levels bought so far, so progress shows in a single frame. */
+function drawUpgrades(ctx, world) {
+  const owned = UPGRADES.filter((u) => (world.up[u.id] || 0) > 0);
+  if (owned.length === 0) return;
+  const rows = owned.slice(0, 5);
+  const w = 220;
+  const x = W - 16 - w;
+  const y = 176;
+  panel(ctx, x, y, w, 36 + rows.length * 22, 0.6);
+  text(ctx, 'UPGRADES', x + 14, y + 22, 13, '#ffd35a', 'left', 900);
+  rows.forEach((u, i) => {
+    const ry = y + 44 + i * 22;
+    text(ctx, u.name, x + 14, ry, 13, '#ffffff', 'left', 700);
+    for (let k = 0; k < MAX_LEVEL; k += 1) {
+      ctx.fillStyle = k < world.up[u.id] ? RARITY[u.rarity].color : 'rgba(160,190,240,0.25)';
+      ctx.fillRect(x + w - 14 - (MAX_LEVEL - k) * 14, ry - 10, 11, 10);
+    }
+  });
+}
+
 export function drawHud(ctx, world, ui, pal) {
   const t = world.time;
   const accent = pal.accentCss;
@@ -94,6 +163,9 @@ export function drawHud(ctx, world, ui, pal) {
     text(ctx, 'chain kills for a combo', W - 32, 106, 14, 'rgba(200,220,255,0.6)', 'right', 600);
   }
   drawRelicStrip(ctx, world);
+  drawRules(ctx);
+  drawIncoming(ctx, world);
+  drawUpgrades(ctx, world);
 
   const boss = world.boss;
   if (boss) drawBossBar(ctx, world, boss, t);
