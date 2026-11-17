@@ -18,6 +18,7 @@ export const UPGRADES = [
   { id: 'bolts', icon: 'bolt', rarity: 'rare', name: 'Storm Coil', desc: 'Lightning now and then strikes the nearest creatures.' },
   { id: 'haste', icon: 'clock', rarity: 'rare', name: "Keeper's Haste", desc: 'Q, E and R recharge 12% faster.' },
   { id: 'might', icon: 'nova', rarity: 'rare', name: 'Nova Might', desc: 'Pulse and Buoy reach 12% farther and hit 20% harder.' },
+  { id: 'polish', icon: 'laser', rarity: 'rare', name: 'Polished Shards', desc: 'Mirror lasers hit 30% harder and reach 8% farther.' },
   { id: 'hull', icon: 'shield', rarity: 'rare', name: 'Stone Footing', desc: '+4 maximum hull and mend 4.' },
 ];
 
@@ -30,10 +31,11 @@ export const RELICS = [
   { id: 'hourglass', icon: 'glass', rarity: 'epic', name: 'Dusk Hourglass', desc: 'Focused beam drains 35% less power.' },
   { id: 'crown', icon: 'crown', rarity: 'epic', name: 'Coral Crown', desc: '+30% score from everything.' },
   { id: 'heart', icon: 'heart', rarity: 'epic', name: 'Fresnel Heart', desc: 'The wide beam bites through shields (50%).' },
+  { id: 'kaleido', icon: 'sun', rarity: 'epic', name: 'Kaleidoscope', desc: 'A lit mirror shard keeps firing 2 seconds after the beam leaves it.' },
   { id: 'bottle', icon: 'bottle', rarity: 'epic', name: 'Storm in a Bottle', desc: 'Storm Call strikes 5 more targets and recharges 25% faster.' },
 ];
 
-export const FRESH_LEVELS = { wide: 0, bright: 0, cell: 0, bolts: 0, slow: 0, focus: 0, haste: 0, might: 0 };
+export const FRESH_LEVELS = { wide: 0, bright: 0, cell: 0, bolts: 0, slow: 0, focus: 0, haste: 0, might: 0, polish: 0 };
 
 export const ITEMS = [...UPGRADES.map((u) => ({ ...u, kind: 'upgrade' })), ...RELICS.map((r) => ({ ...r, kind: 'relic' }))];
 export const itemById = (id) => ITEMS.find((i) => i.id === id);

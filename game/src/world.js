@@ -301,11 +301,12 @@ export class World {
       const dir = Math.atan2(dy, dx);
       let hit = false;
       for (const arm of arms) if (dist < range + 40 && Math.abs(wrap(dir - (this.beamAngle + arm.off))) < arm.half + MIRROR.half) hit = true;
-      m.lit += ((hit && !this.locked ? 1 : 0) - m.lit) * Math.min(1, dt * 10);
+      m.hold = hit && !this.locked ? (this.hasRelic('kaleido') ? 2 : 0.001) : Math.max(0, (m.hold || 0) - dt);
+      m.lit += ((m.hold > 0 ? 1 : 0) - m.lit) * Math.min(1, dt * 10);
       m.on = m.lit > 0.45;
       if (!m.on) continue;
       let near = null;
-      let best = MIRROR.reach;
+      let best = MIRROR.reach * (1 + 0.08 * this.up.polish);
       for (const e of this.enemies) {
         const d = Math.hypot(e.x - m.x, e.y - m.y);
         if (d < best) {
@@ -400,8 +401,8 @@ export class World {
         const mdy = e.y - m.y;
         const md = Math.hypot(mdx, mdy);
         const off = wrap(Math.atan2(mdy, mdx) - m.ang);
-        if (md < MIRROR.reach + e.r && Math.abs(off) < MIRROR.half + e.r / Math.max(md, 40)) {
-          this.hurt(e, MIRROR.dps * (this.focusing ? 2.2 : 1) * dt, { focused: this.focusing });
+        if (md < MIRROR.reach * (1 + 0.08 * this.up.polish) + e.r && Math.abs(off) < MIRROR.half + e.r / Math.max(md, 40)) {
+          this.hurt(e, MIRROR.dps * (1 + 0.3 * this.up.polish) * (this.focusing ? 2.2 : 1) * dt, { focused: this.focusing });
           e.lit = 1;
           if (this.fx.chance(0.3)) this.spark(e.x, e.y, 1, '150,235,255', 110, 0.4);
         }
