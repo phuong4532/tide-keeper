@@ -1,7 +1,7 @@
 // Light and sparks: the volumetric beam (sun, prism or ember), its glitter on the water, the lamp glow,
 // the ability effects (pulse ring, lantern buoys, lightning), particles, flying pearls and damage numbers.
 // Everything luminous is drawn additively ('lighter') so overlapping light adds up and glows.
-import { BEAMS, HORIZON, LAMP, PEARL_HUD, PULSE_CENTER } from './config.js';
+import { BEAMS, HORIZON, LAMP, MIRROR, PEARL_HUD, PULSE_CENTER } from './config.js';
 
 function cone(ctx, angle, half, range) {
   ctx.beginPath();
@@ -262,6 +262,58 @@ export function drawFloaters(ctx, world) {
     ctx.strokeText(f.text, f.x, f.y);
     ctx.fillStyle = f.color || '#ffe9a8';
     ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.restore();
+}
+
+/** Mirror shards: faint crystals on the water; lit ones throw a reflected laser at the creature they aim at. */
+export function drawMirrors(ctx, world, t) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const m of world.mirrors) {
+    const k = m.lit;
+    const bob = Math.sin(t * 1.6 + m.x * 0.01) * 3;
+    const y = m.y + bob;
+    const glow = ctx.createRadialGradient(m.x, y, 0, m.x, y, 46 + 40 * k);
+    glow.addColorStop(0, `rgba(170,240,255,${0.28 + 0.6 * k})`);
+    glow.addColorStop(1, 'rgba(170,240,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(m.x - 90, y - 90, 180, 180);
+    ctx.beginPath();
+    ctx.moveTo(m.x, y - 24);
+    ctx.lineTo(m.x + 13, y);
+    ctx.lineTo(m.x, y + 24);
+    ctx.lineTo(m.x - 13, y);
+    ctx.closePath();
+    ctx.fillStyle = `rgba(200,245,255,${0.35 + 0.55 * k})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255,255,255,${0.5 + 0.5 * k})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    if (m.on) {
+      const range = MIRROR.reach + 40;
+      const gradient = ctx.createLinearGradient(m.x, y, m.x + Math.cos(m.ang) * range, y + Math.sin(m.ang) * range);
+      gradient.addColorStop(0, 'rgba(190,245,255,0.95)');
+      gradient.addColorStop(1, 'rgba(120,210,255,0)');
+      for (const [w, a] of [[16, 0.22], [7, 0.45], [2.6, 1]]) {
+        ctx.strokeStyle = gradient;
+        ctx.globalAlpha = a;
+        ctx.lineWidth = w;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(m.x, y);
+        ctx.lineTo(m.x + Math.cos(m.ang) * range, y + Math.sin(m.ang) * range);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      // The bounce: a thin line from the lamp to the shard.
+      ctx.strokeStyle = 'rgba(255,250,225,0.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(LAMP.x, LAMP.y);
+      ctx.lineTo(m.x, y);
+      ctx.stroke();
+    }
   }
   ctx.restore();
 }

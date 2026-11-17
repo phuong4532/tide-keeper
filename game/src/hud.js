@@ -173,7 +173,10 @@ export function drawHud(ctx, world, ui, pal) {
   drawRadar(ctx, world, t, accent);
   drawAbilityBar(ctx, world, t);
 
-  // Bottom right: the lamp in use and the keys.
+  // Bottom right: the lamp in use, a hint about the mirror shards, and the keys.
+  panel(ctx, W - 300, H - 126, 284, 28, 0.6, 'rgba(150,235,255,0.4)');
+  drawIcon(ctx, 'cone', W - 282, H - 112, 18, '#aef0ff');
+  text(ctx, 'MIRROR SHARDS bounce the beam', W - 266, H - 107, 13, '#bff6ff', 'left', 800);
   panel(ctx, W - 300, H - 92, 284, 78);
   drawIcon(ctx, world.beamId === 'sun' ? 'sunbeam' : world.beamId, W - 270, H - 66, 26, `rgb(${BEAMS[world.beamId].rgb})`);
   text(ctx, BEAMS[world.beamId].name.toUpperCase(), W - 246, H - 60, 17, '#ffffff', 'left', 900);

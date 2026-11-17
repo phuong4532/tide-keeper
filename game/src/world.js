@@ -1,7 +1,7 @@
 // The rules of Tide Keeper. A World holds everything that happens: the beam, the creatures, the waves,
 // the abilities, the pearls and shop, the score. It never touches the screen or the browser, so it runs
 // the same in a page or in a headless test.
-import { BASE, BEAM, BEAMS, BOSS_WAVES, COMBO, LAMP, PULSE_CENTER, START, TIDES, TOTAL_WAVES, TOWER_HIT_RADIUS, ABILITIES } from './config.js';
+import { BASE, BEAM, BEAMS, BOSS_WAVES, COMBO, LAMP, MIRROR, MIRRORS, PULSE_CENTER, START, TIDES, TOTAL_WAVES, TOWER_HIT_RADIUS, ABILITIES } from './config.js';
 import { BOSSES, makeEnemy, moveEnemy, spawnPoint, TYPES, waveRoster } from './enemies.js';
 import { Rng } from './random.js';
 import { freshMeta, loadMeta, saveMeta } from './storage.js';
@@ -75,6 +75,7 @@ export class World {
     this.orbs = [];
     this.rings = [];
     this.buoys = [];
+    this.mirrors = MIRRORS.map((m) => ({ ...m, lit: 0, on: false, ang: 0 }));
     this.storm = null;
     this.cooldowns = { pulse: 0, buoy: 0, storm: 0 };
     this.cdFlash = { pulse: 0, buoy: 0, storm: 0 };
@@ -291,6 +292,32 @@ export class World {
     this.beamAngle = wrap(this.beamAngle + this.beamVel * dt);
   }
 
+  /** A mirror shard lights up while the beam covers it, then bounces a laser at the creature nearest to it. */
+  updateMirrors(dt, arms, range) {
+    for (const m of this.mirrors) {
+      const dx = m.x - LAMP.x;
+      const dy = m.y - LAMP.y;
+      const dist = Math.hypot(dx, dy);
+      const dir = Math.atan2(dy, dx);
+      let hit = false;
+      for (const arm of arms) if (dist < range + 40 && Math.abs(wrap(dir - (this.beamAngle + arm.off))) < arm.half + MIRROR.half) hit = true;
+      m.lit += ((hit && !this.locked ? 1 : 0) - m.lit) * Math.min(1, dt * 10);
+      m.on = m.lit > 0.45;
+      if (!m.on) continue;
+      let near = null;
+      let best = MIRROR.reach;
+      for (const e of this.enemies) {
+        const d = Math.hypot(e.x - m.x, e.y - m.y);
+        if (d < best) {
+          best = d;
+          near = e;
+        }
+      }
+      if (near) m.ang = Math.atan2(near.y - m.y, near.x - m.x);
+      else m.on = false;
+    }
+  }
+
   /** Damage `amount` to creature `e`. `pierce` ignores shields; `focused` is the laser. Returns damage dealt. */
   hurt(e, amount, { pierce = false, focused = false, burn = false } = {}) {
     let amt = amount;
@@ -335,6 +362,7 @@ export class World {
     const range = this.beamRange;
     const ember = this.beamId === 'ember';
     let burned = false;
+    this.updateMirrors(dt, arms, range);
 
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const e = this.enemies[i];
@@ -365,6 +393,18 @@ export class World {
         if (ember) e.burn = Math.max(e.burn, 3.2);
         burned = true;
         if (this.fx.chance(this.focusing ? 0.7 : 0.25)) this.spark(e.x, e.y, 1, this.focusing ? '180,240,255' : ember ? '255,150,70' : '255,200,110', 120, 0.45);
+      }
+      for (const m of this.mirrors) {
+        if (!m.on) continue;
+        const mdx = e.x - m.x;
+        const mdy = e.y - m.y;
+        const md = Math.hypot(mdx, mdy);
+        const off = wrap(Math.atan2(mdy, mdx) - m.ang);
+        if (md < MIRROR.reach + e.r && Math.abs(off) < MIRROR.half + e.r / Math.max(md, 40)) {
+          this.hurt(e, MIRROR.dps * (this.focusing ? 2.2 : 1) * dt, { focused: this.focusing });
+          e.lit = 1;
+          if (this.fx.chance(0.3)) this.spark(e.x, e.y, 1, '150,235,255', 110, 0.4);
+        }
       }
       if (e.burn > 0) {
         e.burn -= dt;

@@ -75,7 +75,7 @@ export function drawTitle(ctx, world, ui, t) {
   ctx.shadowBlur = 40;
   text(ctx, 'TIDE KEEPER', W / 2, 122, 90, '#ffe3a0', 'center', 900, SERIF);
   ctx.restore();
-  text(ctx, 'Hold the light. Burn back the dark.', W / 2, 168, 28, '#fff1d0', 'center', 700);
+  text(ctx, 'Hold the light. Bounce it off the mirror shards.', W / 2, 168, 28, '#fff1d0', 'center', 700);
   text(ctx, `A lighthouse roguelite  |  ${TOTAL_WAVES} waves  |  3 tides  |  2 Kraken Queens`, W / 2, 196, 17, '#cfe0ff', 'center', 700);
 
   // Bank and best score.
@@ -93,7 +93,7 @@ export function drawTitle(ctx, world, ui, t) {
 
   // Rules, right.
   const px = W - 36 - 372;
-  panel(ctx, px, 212, 372, 366, 0.72);
+  panel(ctx, px, 212, 372, 392, 0.72);
   text(ctx, 'KEEP THE LIGHT', px + 20, 242, 15, '#ffd35a', 'left', 900);
   const rows = [
     ['MOUSE', 'sweep the beam'],
@@ -101,6 +101,7 @@ export function drawTitle(ctx, world, ui, t) {
     ['Q', 'Pulse Nova: hurl the sea back'],
     ['E', 'Lantern Buoy: a burning trap'],
     ['R', 'Storm Call: lightning strikes'],
+    ['MIRRORS', 'light a shard: it bounces a laser'],
   ];
   rows.forEach(([key, what], i) => {
     const y = 276 + i * 31;
@@ -110,14 +111,14 @@ export function drawTitle(ctx, world, ui, t) {
     text(ctx, key, px + 20 + (key.length > 3 ? 60 : 17), y, 14, '#ffffff', 'center', 800);
     text(ctx, what, px + (key.length > 3 ? 152 : 66), y, 15, '#cfe0ff', 'left', 600);
   });
-  text(ctx, 'Burn creatures for pearls, spend them on relics', px + 20, 446, 14, '#ffe7a6', 'left', 700);
-  text(ctx, 'and upgrades between waves. Lose all hull and', px + 20, 464, 14, '#ffe7a6', 'left', 700);
-  text(ctx, `the light goes out. Survive wave ${TOTAL_WAVES} for dawn.`, px + 20, 482, 14, '#ffe7a6', 'left', 700);
+  text(ctx, 'Burn creatures for pearls, spend them on relics', px + 20, 472, 14, '#ffe7a6', 'left', 700);
+  text(ctx, 'and upgrades between waves. Lose all hull and', px + 20, 490, 14, '#ffe7a6', 'left', 700);
+  text(ctx, `the light goes out. Survive wave ${TOTAL_WAVES} for dawn.`, px + 20, 508, 14, '#ffe7a6', 'left', 700);
   // The creatures.
-  text(ctx, 'THE DEEP SENDS', px + 20, 512, 13, '#ffd35a', 'left', 900);
+  text(ctx, 'THE DEEP SENDS', px + 20, 538, 13, '#ffd35a', 'left', 900);
   ['crab', 'ghost', 'jelly', 'gunboat', 'leviathan', 'kraken'].forEach((type, i) => {
     const small = type === 'kraken' ? 0.3 : type === 'leviathan' ? 0.32 : type === 'gunboat' ? 0.5 : 0.62;
-    drawEnemyIcon(ctx, type, px + 44 + i * 60, 548 + (type === 'kraken' ? 8 : 0), small, t + i);
+    drawEnemyIcon(ctx, type, px + 44 + i * 60, 574 + (type === 'kraken' ? 8 : 0), small, t + i);
   });
 
   // Click to begin.

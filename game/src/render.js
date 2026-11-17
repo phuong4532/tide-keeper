@@ -1,5 +1,5 @@
 // Draws one whole frame: the scene back to front, then the HUD or the screen laid over it.
-import { drawBeam, drawBeamReflection, drawBolts, drawBuoys, drawFloaters, drawLampGlow, drawParticles, drawRings } from './beam.js';
+import { drawBeam, drawBeamReflection, drawBolts, drawBuoys, drawFloaters, drawLampGlow, drawMirrors, drawParticles, drawRings } from './beam.js';
 import { drawEnemy } from './creatures.js';
 import { H, W } from './config.js';
 import { drawHud } from './hud.js';
@@ -29,6 +29,7 @@ export function render(ctx, world, ui) {
   for (const e of world.enemies) if (e.type === 'ghost') drawEnemy(ctx, e, world.focusing);
   drawBeamReflection(ctx, world, t);
   drawBeam(ctx, world, t);
+  drawMirrors(ctx, world, t);
   drawLampGlow(ctx, world, t);
   drawRings(ctx, world);
   drawBolts(ctx, world);

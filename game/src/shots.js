@@ -25,7 +25,7 @@ function freshRun(world, seed, beam, relics = []) {
 function busyness(world) {
   const lit = world.enemies.filter((e) => e.lit > 0.5).length;
   const kinds = new Set(world.enemies.map((e) => e.type)).size;
-  return world.enemies.length + lit * 3 + kinds * 4 + (world.focusing ? 5 : 0) + world.rings.length * 22 + world.buoys.length * 10 + (world.boss && world.boss.lit > 0.5 ? 16 : 0) + world.bolts.length * 3 + world.floaters.length * 0.6;
+  return world.enemies.length + lit * 3 + kinds * 4 + (world.focusing ? 5 : 0) + world.rings.length * 22 + world.buoys.length * 10 + (world.boss && world.boss.lit > 0.5 ? 16 : 0) + world.bolts.length * 3 + world.floaters.length * 0.6 + world.mirrors.filter((m) => m.on).length * 30;
 }
 
 /** Play wave 5 (the Kraken Queen) once to find the busiest moment, then replay to it. */

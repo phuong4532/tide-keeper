@@ -61,3 +61,12 @@ export const COMBO = { window: 3, step: 5, perStep: 0.5, max: 5 };
 export const PEARL_HUD = { x: 934, y: 98 };
 /** The centre of the Pulse Nova: the foot of the tower. */
 export const PULSE_CENTER = { x: 640, y: 520 };
+
+/** Mirror shards on the sea: sweep the beam over one and it bounces a laser at the nearest creature. */
+export const MIRRORS = [
+  { x: 250, y: 505 },
+  { x: 1030, y: 505 },
+  { x: 465, y: 655 },
+  { x: 815, y: 655 },
+];
+export const MIRROR = { range: 560, half: 0.06, dps: 24, reach: 480 };

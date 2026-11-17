@@ -51,6 +51,17 @@ export class Autopilot {
         }
       }
       this.retargetT = s.retarget;
+      this.mirror = null;
+      let crowd = 2;
+      for (const m of world.mirrors) {
+        const n = world.enemies.filter((e) => Math.hypot(e.x - m.x, e.y - m.y) < 330).length;
+        if (n > crowd) {
+          crowd = n;
+          this.mirror = m;
+        }
+      }
+      const danger = world.enemies.some((e) => e.type === 'shell' || e.type === 'kraken' || Math.hypot(e.x - BASE.x, e.y - BASE.y) < 260);
+      if (danger) this.mirror = null;
     }
     this.err += (this.rng.range(-1, 1) * s.jitter - this.err * 0.08) * 1;
     const cast = [];
@@ -58,6 +69,9 @@ export class Autopilot {
     if (this.thinkT <= 0) {
       this.thinkT = s.react;
       this.decideAbilities(world, cast);
+    }
+    if (this.mirror && world.enemies.length > 0) {
+      return { aim: Math.atan2(this.mirror.y - LAMP.y, this.mirror.x - LAMP.x) + this.err, focus: false, cast, cursor: { x: this.mirror.x, y: this.mirror.y } };
     }
     const t = this.target;
     if (!t) return { aim: world.beamAngle, focus: false, cast, cursor: { x: BASE.x, y: 480 } };
